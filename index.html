@@ -1081,6 +1081,42 @@
     .back-btn { margin-bottom: 20px; }
   }
 </style>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDS5q1NAzJTNaH3tGllGi2xmJycg8xFYK0",
+    authDomain: "my-guide-689e4.firebaseapp.com",
+    projectId: "my-guide-689e4",
+    storageBucket: "my-guide-689e4.firebasestorage.app",
+    messagingSenderId: "782869926897",
+    appId: "1:782869926897:web:b24e4814a3e3ff0538aa50"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Firestore에 저장
+  window.saveToFirestore = async function(data) {
+    try {
+      await setDoc(doc(db, 'guide', 'shared'), data);
+    } catch(e) {
+      console.warn('Firestore 저장 실패:', e);
+    }
+  };
+
+  // Firestore 실시간 구독
+  window.listenFirestore = function(callback) {
+    onSnapshot(doc(db, 'guide', 'shared'), (snap) => {
+      if (snap.exists()) callback(snap.data());
+    });
+  };
+
+  window.firestoreReady = true;
+  document.dispatchEvent(new Event('firestore-ready'));
+</script>
 </head>
 <body>
 
@@ -1724,7 +1760,10 @@ const DAY_EMOJIS = ['🌱','🌿','🌳','⭐','🌟','💫','🏆'];
 const STORAGE_KEY = 'hangeul45_data';
 
 function saveToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ dayChecks, comments, weekDone, prepChecks, counts, memos, achieves, dailyCounts, restedDays, startDates }));
+  const data = { dayChecks, comments, weekDone, prepChecks, counts, memos, achieves, dailyCounts, restedDays, startDates };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Firestore에도 저장
+  if (window.saveToFirestore) window.saveToFirestore(data);
 }
 
 function loadFromStorage() {
@@ -2038,6 +2077,88 @@ function restoreState() {
 }
 
 // 초기 진입은 인트로에서 enterMode() 호출 시 실행
+
+// Firestore 실시간 동기화 — 상대방이 업데이트하면 내 화면도 갱신
+function startFirestoreSync() {
+  if (!window.listenFirestore) {
+    document.addEventListener('firestore-ready', startFirestoreSync);
+    return;
+  }
+  window.listenFirestore(function(data) {
+    // 현재 모드 데이터만 선택적으로 병합
+    if (data.counts) Object.assign(counts, data.counts);
+    if (data.memos) Object.assign(memos, data.memos);
+    if (data.dailyCounts) Object.assign(dailyCounts, data.dailyCounts);
+    if (data.restedDays) Object.assign(restedDays, data.restedDays);
+    if (data.startDates) Object.assign(startDates, data.startDates);
+    if (data.dayChecks) data.dayChecks.forEach((w,i) => dayChecks[i] = w);
+    if (data.weekDone) data.weekDone.forEach((v,i) => weekDone[i] = v);
+    // localStorage도 최신으로 업데이트
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // 현재 화면 갱신
+    if (typeof currentMode !== 'undefined' && document.getElementById('mainScreen').classList.contains('active')) {
+      renderRecord(currentMode);
+      updateMainProgress();
+      restoreState();
+    }
+  });
+}
+startFirestoreSync();
+</script>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDS5q1NAzJTNaH3tGllGi2xmJycg8xFYK0",
+    authDomain: "my-guide-689e4.firebaseapp.com",
+    projectId: "my-guide-689e4",
+    storageBucket: "my-guide-689e4.firebasestorage.app",
+    messagingSenderId: "782869926897",
+    appId: "1:782869926897:web:b24e4814a3e3ff0538aa50"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, 'guide', 'shared');
+
+  let isSyncing = false;
+
+  // Firestore → 로컬 실시간 동기화
+  onSnapshot(docRef, (snap) => {
+    if (!snap.exists()) return;
+    const remote = snap.data();
+    if (!remote || isSyncing) return;
+
+    // 원격 데이터를 로컬에 병합
+    try {
+      const local = JSON.parse(localStorage.getItem('hangeul45_data') || '{}');
+      const merged = { ...local, ...remote };
+      localStorage.setItem('hangeul45_data', JSON.stringify(merged));
+
+      // 현재 모드 화면 갱신
+      if (window.currentMode) {
+        if (typeof renderRecord === 'function') renderRecord(window.currentMode);
+        if (typeof updateMainProgress === 'function') updateMainProgress();
+        if (typeof restoreState === 'function') restoreState();
+      }
+    } catch(e) { console.log('sync error', e); }
+  });
+
+  // 로컬 → Firestore 저장
+  window.saveToFirestore = async function(data) {
+    try {
+      isSyncing = true;
+      await setDoc(docRef, data, { merge: true });
+      isSyncing = false;
+    } catch(e) {
+      isSyncing = false;
+      console.log('save error', e);
+    }
+  };
+
+  console.log('Firebase 연동 완료 ✅');
 </script>
 </body>
 </html>
