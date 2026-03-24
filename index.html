@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>엄마아빠 활동 가이드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
@@ -406,7 +406,7 @@
   .weekly-wrap {
     background: white; border-radius: 14px;
     border: 1.5px solid var(--border);
-    padding: 16px; margin-bottom: 16px;
+    padding: 16px; margin-top: 16px; margin-bottom: 16px;
     box-shadow: 0 2px 8px var(--shadow);
   }
 
@@ -443,6 +443,7 @@
 
   /* ── 45일 달력 ── */
   .achieve-wrap {
+    margin-top: 16px;
     background: white; border-radius: 14px;
     border: 1.5px solid var(--border);
     padding: 16px;
@@ -1606,6 +1607,13 @@ function renderWeekly(mode) {
     `;
   }).join('');
 }
+
+/* ── KEYBOARD FIX ── */
+document.addEventListener('focusin', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+});
 
 /* ── MODE ── */
 let currentMode = 'mom'; // 'mom' | 'dad'
