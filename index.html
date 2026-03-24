@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>엄마아빠 활동 가이드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="manifest" href="manifest.json">
@@ -142,6 +142,8 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: -webkit-fill-available; }
+  body { min-height: 100vh; min-height: -webkit-fill-available; }
 
   body {
     background: var(--bg);
@@ -1651,11 +1653,35 @@ function renderWeekly(mode) {
 }
 
 /* ── KEYBOARD FIX ── */
-document.addEventListener('focusin', function(e) {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-    e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }
-});
+(function() {
+  let scrollY = 0;
+
+  document.addEventListener('focusin', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      scrollY = window.scrollY;
+      // iOS에서 키보드 올라올 때 스크롤 위치 고정
+      setTimeout(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' });
+        e.target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, 100);
+    }
+  });
+
+  document.addEventListener('focusout', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      setTimeout(() => {
+        window.scrollTo({ top: scrollY, behavior: 'smooth' });
+      }, 100);
+    }
+  });
+
+  // iOS Safari 키보드로 인한 resize 이벤트 무시
+  let initialHeight = window.innerHeight;
+  window.addEventListener('resize', function() {
+    if (window.innerHeight < initialHeight * 0.75) return; // 키보드 올라온 상태면 무시
+    initialHeight = window.innerHeight;
+  });
+})();
 
 /* ── MODE ── */
 let currentMode = 'mom'; // 'mom' | 'dad'
