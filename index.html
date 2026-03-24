@@ -1655,32 +1655,27 @@ function renderWeekly(mode) {
 
 /* ── KEYBOARD FIX ── */
 (function() {
-  let scrollY = 0;
+  const hideOnKeyboard = () => {
+    document.querySelectorAll('.achieve-wrap, .weekly-wrap').forEach(el => {
+      el.style.display = 'none';
+    });
+  };
+  const showOnKeyboard = () => {
+    document.querySelectorAll('.achieve-wrap, .weekly-wrap').forEach(el => {
+      el.style.display = '';
+    });
+  };
 
   document.addEventListener('focusin', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      scrollY = window.scrollY;
-      // iOS에서 키보드 올라올 때 스크롤 위치 고정
-      setTimeout(() => {
-        window.scrollTo({ top: scrollY, behavior: 'instant' });
-        e.target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      }, 100);
+      hideOnKeyboard();
     }
   });
 
   document.addEventListener('focusout', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      setTimeout(() => {
-        window.scrollTo({ top: scrollY, behavior: 'smooth' });
-      }, 100);
+      setTimeout(() => showOnKeyboard(), 200);
     }
-  });
-
-  // iOS Safari 키보드로 인한 resize 이벤트 무시
-  let initialHeight = window.innerHeight;
-  window.addEventListener('resize', function() {
-    if (window.innerHeight < initialHeight * 0.75) return; // 키보드 올라온 상태면 무시
-    initialHeight = window.innerHeight;
   });
 })();
 
