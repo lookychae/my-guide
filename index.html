@@ -458,6 +458,7 @@
     border: 1.5px solid var(--border);
     padding: 16px;
     box-shadow: 0 2px 8px var(--shadow);
+    overflow: hidden; box-sizing: border-box;
   }
 
   .achieve-header {
@@ -553,7 +554,7 @@
     background: var(--highlight); border-radius: 10px;
     border: 1.5px solid var(--accent);
     box-sizing: border-box; width: 100%;
-    overflow: hidden;
+    overflow: hidden; max-width: 100%;
   }
 
   .start-picker-label {
@@ -566,7 +567,9 @@
     border: 1.5px solid var(--border); border-radius: 8px;
     font-family: 'Pretendard', sans-serif; font-size: 16px;
     margin-bottom: 10px; outline: none;
-    box-sizing: border-box;
+    box-sizing: border-box; max-width: 100%;
+    -webkit-appearance: none; appearance: none;
+    display: block;
   }
   .start-date-input:focus { border-color: var(--accent); }
 
