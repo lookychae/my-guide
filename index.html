@@ -562,16 +562,27 @@
     color: var(--text); margin-bottom: 10px;
   }
 
-  .start-date-input {
-    width: 100%; padding: 8px 12px;
+  .start-select-row {
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 14px; flex-wrap: nowrap;
+  }
+
+  .start-select {
+    flex: 1; padding: 8px 4px;
     border: 1.5px solid var(--border); border-radius: 8px;
     font-family: 'Pretendard', sans-serif; font-size: 16px;
-    margin-bottom: 10px; outline: none;
-    box-sizing: border-box; max-width: 100%;
+    background: white; color: var(--text);
+    outline: none; min-width: 0;
     -webkit-appearance: none; appearance: none;
-    display: block;
+    text-align: center;
   }
-  .start-date-input:focus { border-color: var(--accent); }
+
+  .start-select:focus { border-color: var(--accent); }
+
+  .start-select-sep {
+    font-size: 0.85rem; color: var(--muted);
+    white-space: nowrap; flex-shrink: 0;
+  }
 
   .start-picker-btns {
     display: flex; gap: 8px; justify-content: flex-end;
@@ -1222,7 +1233,14 @@
       <!-- 시작일 피커 -->
       <div class="start-picker" id="startPicker" style="display:none;">
         <div class="start-picker-label">시작일을 선택해 주세요</div>
-        <input type="date" class="start-date-input" id="startDateInput">
+        <div class="start-select-row">
+          <select class="start-select" id="startYear"></select>
+          <span class="start-select-sep">년</span>
+          <select class="start-select" id="startMonth"></select>
+          <span class="start-select-sep">월</span>
+          <select class="start-select" id="startDay"></select>
+          <span class="start-select-sep">일</span>
+        </div>
         <div class="start-picker-btns">
           <button onclick="confirmStartDate()">확인</button>
           <button onclick="closeStartDatePicker()">취소</button>
@@ -1498,15 +1516,44 @@ function toggleRest(key) {
 
 function openStartDatePicker() {
   const picker = document.getElementById('startPicker');
-  const input  = document.getElementById('startDateInput');
-  const sd = startDates[currentMode];
-  if (sd) {
-    // YYYY-MM-DD 형식으로 세팅
-    const d = new Date(sd);
-    const pad = n => String(n).padStart(2,'0');
-    input.value = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const selY = document.getElementById('startYear');
+  const selM = document.getElementById('startMonth');
+  const selD = document.getElementById('startDay');
+
+  // 연도 옵션 (2024~2027)
+  if (!selY.options.length) {
+    for (let y = 2024; y <= 2027; y++) {
+      selY.add(new Option(y + '년', y));
+    }
   }
+  // 월 옵션
+  if (!selM.options.length) {
+    for (let m = 1; m <= 12; m++) {
+      selM.add(new Option(m + '월', m));
+    }
+  }
+
+  // 기존 값 세팅
+  const sd = startDates[currentMode];
+  const d = sd ? (() => { const p = sd.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); })() : new Date();
+  selY.value = d.getFullYear();
+  selM.value = d.getMonth() + 1;
+  updateDayOptions(d.getFullYear(), d.getMonth() + 1, d.getDate());
+
+  selM.onchange = () => updateDayOptions(+selY.value, +selM.value, +selD.value);
+  selY.onchange = () => updateDayOptions(+selY.value, +selM.value, +selD.value);
+
   picker.style.display = 'block';
+}
+
+function updateDayOptions(y, m, currentDay) {
+  const selD = document.getElementById('startDay');
+  const maxDay = new Date(y, m, 0).getDate();
+  selD.innerHTML = '';
+  for (let d = 1; d <= maxDay; d++) {
+    selD.add(new Option(d + '일', d));
+  }
+  selD.value = Math.min(currentDay || 1, maxDay);
 }
 
 function closeStartDatePicker() {
@@ -1514,11 +1561,12 @@ function closeStartDatePicker() {
 }
 
 function confirmStartDate() {
-  const val = document.getElementById('startDateInput').value;
-  if (!val) return;
-  const parts = val.split('-');
-  const d = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
-  startDates[currentMode] = getDateKey(d);
+  const y = +document.getElementById('startYear').value;
+  const m = +document.getElementById('startMonth').value;
+  const d = +document.getElementById('startDay').value;
+  if (!y || !m || !d) return;
+  const date = new Date(y, m-1, d);
+  startDates[currentMode] = getDateKey(date);
   saveToStorage();
   closeStartDatePicker();
   renderAchieves(currentMode);
