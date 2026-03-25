@@ -1,0 +1,10 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+  <rect width="400" height="400" rx="88" fill="#f2e8da"/>
+  <circle cx="200" cy="162" r="112" fill="#2b1a0d"/>
+  <circle cx="162" cy="145" r="11" fill="#f2e8da"/>
+  <circle cx="238" cy="145" r="11" fill="#f2e8da"/>
+  <path d="M156 192 Q200 230 244 192" fill="none" stroke="#f2e8da" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="145" cy="182" r="15" fill="#c8512a" opacity="0.55"/>
+  <circle cx="255" cy="182" r="15" fill="#c8512a" opacity="0.55"/>
+  <text x="200" y="338" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="52" font-weight="900" fill="#2b1a0d" letter-spacing="-2">엄빠가이드</text>
+</svg>
