@@ -6,7 +6,7 @@
 <title>엄마아빠 활동 가이드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon.svg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="엄마아빠 가이드">
@@ -552,6 +552,8 @@
     margin-top: 14px; padding: 14px;
     background: var(--highlight); border-radius: 10px;
     border: 1.5px solid var(--accent);
+    box-sizing: border-box; width: 100%;
+    overflow: hidden;
   }
 
   .start-picker-label {
@@ -562,8 +564,9 @@
   .start-date-input {
     width: 100%; padding: 8px 12px;
     border: 1.5px solid var(--border); border-radius: 8px;
-    font-family: 'Pretendard', sans-serif; font-size: 0.88rem;
+    font-family: 'Pretendard', sans-serif; font-size: 16px;
     margin-bottom: 10px; outline: none;
+    box-sizing: border-box;
   }
   .start-date-input:focus { border-color: var(--accent); }
 
